@@ -8,8 +8,9 @@ import csv
 
 
 class Hangman(Frame):
-    def __init__(self, catset=False):
+    def __init__(self,root):
         super().__init__()
+        self.root=root
         self.guessnumber = 0
         self.wrongguess = 0
         self.goal_word = ''
@@ -17,29 +18,25 @@ class Hangman(Frame):
         self.win=False
         self.lose=False
         self.category='fandb'
-        self.catset=catset
         self.goal_word_nospc=''
         self.keybuttons = []
+        self.catstring=''
         self.catbuts=[]
         self.initUI()
-
-
+        self.catdisbut=tk.Button(self)
 
     def initUI(self):
         alphabet=[]
-        
         def make_word():
             wordbankfb = []
             wordbankan = []
             wordbankr = []
             wordbankc = []
-
             with open('fandb.csv') as csvfile:
                 word_reader = csv.reader(csvfile, delimiter=',')
                 for row in word_reader:                          
                         wordbankfb.append(row[0])
 
-        
             with open('animals.csv') as csvfile:
                 word_reader = csv.reader(csvfile, delimiter=',')
                 for row in word_reader:
@@ -54,19 +51,21 @@ class Hangman(Frame):
                 word_reader = csv.reader(csvfile, delimiter=',')
                 for row in word_reader:
                     wordbankc.append(row[0])
-
+ 
             if(self.category == "fandb"):
                 wordbank = wordbankfb
+                self.catstring = "Food & Bev"
             if(self.category == "animals"):
                 wordbank=wordbankan
+                self.catstring = "Animals"
             if(self.category == "random"):
                 wordbank = wordbankr
+                self.catstring = "Random"
             if(self.category == "clothes"):
                 wordbank = wordbankc
-
+                self.catstring = "Clothes"
 
             gw = random.sample(wordbank, 1)[0]
-
             print(gw)
             self.goal_word_nospc=gw
             gws=''
@@ -80,7 +79,6 @@ class Hangman(Frame):
             for letters in self.goal_word.split():
                 word += "_ "
             self.display_word = word
-
 
         def make_letters():
             for letter in string.ascii_lowercase[:26]:
@@ -110,10 +108,7 @@ class Hangman(Frame):
             self.display_word = ' '.join(dp_word)
             self.display_word = self.display_word.strip()
 
-
-    
-        def press(self, letter):
-            
+        def press(self, letter):           
             compstr=self.display_word        
             guess_letter(self, letter)
             self.guessnumber+=1
@@ -126,7 +121,7 @@ class Hangman(Frame):
             self.keybuttons[letterindex].configure(
                 command=lambda: [], fg='lightgrey')
             
-            if(compstr==self.display_word):
+            if(compstr.strip()==self.display_word):
                 self.wrongguess+=1
                 imgfile = f"{self.wrongguess}.gif"
                 image = ImageTk.PhotoImage(file=imgfile)
@@ -137,7 +132,9 @@ class Hangman(Frame):
             ansb.insert(tk.END, self.display_word)
             ansb.tag_configure("center", justify='center')
             ansb.tag_add("center", "1.0", "end")
-
+            win_or_lose()
+            
+        def win_or_lose():
             if self.wrongguess>=7:
                 self.lose=True
             if self.display_word.strip()==self.goal_word.strip():
@@ -145,26 +142,38 @@ class Hangman(Frame):
             if self.win:
                 for btn in self.keybuttons:
                     btn.grid_forget()
+                self.catdisbut.grid_forget()
                 win = tk.Text(self, height=2, width=15, fg="black",
                             bg="darkgrey", font='Helvetica 40 bold')
                 win.insert(tk.END, f"You Win! \n In {self.guessnumber} tries")
                 win.tag_configure("center", justify='center')
                 win.tag_add("center", "1.0", "end")
                 win.grid(row=2, column=1, columnspan=4, rowspan=3)
-
-
+                quit = tk.Button(self, text="QUIT", fg="black", bg="red", font='Helvetica 18 bold', command=lambda: [self.master.destroy()], width=4, height=2)
+                quit.grid(row=5, column=1, columnspan=2)
+                newgame = tk.Button(self, text="New \n Game", fg="black", bg="green", font='Helvetica 14 bold', command=lambda: [
+                                    new_game(self)], width=5, height=2)
+                newgame.grid(row=5, column=3, columnspan=2)
 
             if self.lose:
                 for btn in self.keybuttons:
                     btn.grid_forget()
+                self.catdisbut.grid_forget()
                 lose = tk.Text(self, height=2, width=15, fg="black",
                                   bg="darkgrey", font='Helvetica 40 bold')
                 lose.insert(tk.END, "You're a Loser!\n it was "+self.goal_word_nospc.title())
                 lose.tag_configure("center", justify='center')
                 lose.tag_add("center", "1.0", "end")
                 lose.grid(row=2, column=1, columnspan=4, rowspan=3)
+                quit = tk.Button(self, text="QUIT", fg="black", bg="red", font='Helvetica 18 bold', command=lambda: [
+                                 self.master.destroy()], width=4, height=2)
+                quit.grid(row=5, column=1, columnspan=2)
+                newgame = tk.Button(self, text="New \n Game", fg="black", bg="green", font='Helvetica 14 bold', command=lambda: [
+                    new_game(self)], width=5, height=2)
+                newgame.grid(row=5, column=3, columnspan=2)
 
-
+        def new_game(self):
+            refresh(self.root)
 
         def get_category(self):
             cat = tk.Text(self, height=1, width=15, fg="black",
@@ -174,7 +183,6 @@ class Hangman(Frame):
             cat.tag_add("center", "1.0", "end")
             cat.grid(row=2, column=1, columnspan=7)
             self.catbuts.append(cat)
-
 
             catbut1 = tk.Button(self, command=lambda: [set_cat('animals'), kill_cat()])
             image = ImageTk.PhotoImage(file="animals.gif")
@@ -209,27 +217,28 @@ class Hangman(Frame):
             self.catbuts.append(catbut4)
             self.pack()
 
-
         def kill_cat():
             make_word_board(self)
             for buts in self.catbuts:
                 buts.grid_forget()
-             #   initUI(True)
-            
-            
+            catdisbut = tk.Text(self, height=2, width=12, fg="black",
+                                    bg="darkgrey", font='Helvetica 8 bold')
+            catdisbut.insert(
+                tk.END, f"Category:\n {self.catstring}")
+            catdisbut.tag_configure("center", justify='center')
+            catdisbut.tag_add("center", "1.0", "end")
+            catdisbut.grid(row=5, column=6, columnspan=2, rowspan=2)
+            self.catdisbut = catdisbut
+            make_letter_buttons(self)
 
         def set_cat(s):
             self.category=s
-            self.catSet=True
-            make_letter_buttons(self)
+            
         
-
-
         #body Starts here
 
-        self.master.title("Hang Man v1.1.0")
+        self.master.title("Hang Man v1.1.2")
         get_category(self)
-        
         ansb = tk.Text(self, height=1, width=25, fg="black",
                         bg="darkgrey", font='Helvetica 22 bold')
         ansb.insert(tk.END, self.display_word.strip())
@@ -237,7 +246,6 @@ class Hangman(Frame):
         ansb.tag_add("center", "1.0", "end")
         ansb.grid(row=1, column=1, columnspan=10)
 
-        
         hangman = tk.Button(self)
         imgfile = f"{self.wrongguess}.gif"
         image = ImageTk.PhotoImage(file=imgfile)
@@ -246,12 +254,18 @@ class Hangman(Frame):
         hangman.grid(row=2, column=10, rowspan=4)
         self.pack()
 
-def main():
-    root = Tk()
+def main(): 
+    root= Tk()
     root.configure(background="black")
-    app = Hangman()
+    app = Hangman(root)
     root.mainloop()
 
+def refresh(root):
+    root.destroy()
+    main()
+    
 
 if __name__ == '__main__':
     main()
+
+    
