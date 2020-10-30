@@ -1,0 +1,7 @@
+            letterindex=27
+            
+            for i in range(len(string.ascii_lowercase[:26])):
+                if string.ascii_lowercase[i]==letter:
+                    letterindex=i
+
+            self.keybuttons[letterindex].configure(command=lambda:[], fg='lightgrey')

@@ -37,27 +37,24 @@ class Hangman(Frame):
             with open('fandb.csv') as csvfile:
                 word_reader = csv.reader(csvfile, delimiter=',')
                 for row in word_reader:                          
-                        print(row[0])
                         wordbankfb.append(row[0])
 
         
             with open('animals.csv') as csvfile:
                 word_reader = csv.reader(csvfile, delimiter=',')
                 for row in word_reader:
-                    print(row[0])
                     wordbankan.append(row[0])
         
             with open('random.csv') as csvfile:
                 word_reader = csv.reader(csvfile, delimiter=',')
                 for row in word_reader:
-                    print(row[0])
                     wordbankr.append(row[0])
         
             with open('clothes.csv') as csvfile:
                 word_reader = csv.reader(csvfile, delimiter=',')
                 for row in word_reader:
-                    print(row[0])
                     wordbankc.append(row[0])
+
             if(self.category == "fandb"):
                 wordbank = wordbankfb
             if(self.category == "animals"):
@@ -70,6 +67,7 @@ class Hangman(Frame):
 
             gw = random.sample(wordbank, 1)[0]
 
+            print(gw)
             self.goal_word_nospc=gw
             gws=''
             for letter in gw:
@@ -82,6 +80,7 @@ class Hangman(Frame):
             for letters in self.goal_word.split():
                 word += "_ "
             self.display_word = word
+
 
         def make_letters():
             for letter in string.ascii_lowercase[:26]:
@@ -114,19 +113,31 @@ class Hangman(Frame):
 
     
         def press(self, letter):
+            
             compstr=self.display_word        
             guess_letter(self, letter)
             self.guessnumber+=1
+            letterindex = 27
+
+            for i in range(len(string.ascii_lowercase[:26])):
+                if string.ascii_lowercase[i] == letter:
+                    letterindex = i
+
+            self.keybuttons[letterindex].configure(
+                command=lambda: [], fg='lightgrey')
+            
             if(compstr==self.display_word):
                 self.wrongguess+=1
                 imgfile = f"{self.wrongguess}.gif"
                 image = ImageTk.PhotoImage(file=imgfile)
                 hangman.config(image=image, bg="black")
                 hangman.image = image
+            
             ansb.delete("1.0", tk.END)
             ansb.insert(tk.END, self.display_word)
             ansb.tag_configure("center", justify='center')
             ansb.tag_add("center", "1.0", "end")
+
             if self.wrongguess>=7:
                 self.lose=True
             if self.display_word.strip()==self.goal_word.strip():
@@ -134,9 +145,9 @@ class Hangman(Frame):
             if self.win:
                 for btn in self.keybuttons:
                     btn.grid_forget()
-                win = tk.Text(self, height=1, width=15, fg="black",
+                win = tk.Text(self, height=2, width=15, fg="black",
                             bg="darkgrey", font='Helvetica 40 bold')
-                win.insert(tk.END, "You Win!")
+                win.insert(tk.END, f"You Win! \n In {self.guessnumber} tries")
                 win.tag_configure("center", justify='center')
                 win.tag_add("center", "1.0", "end")
                 win.grid(row=2, column=1, columnspan=4, rowspan=3)
@@ -216,15 +227,15 @@ class Hangman(Frame):
 
         #body Starts here
 
-        self.master.title("Hang Man v1.0.0")
+        self.master.title("Hang Man v1.1.0")
         get_category(self)
         
-        ansb = tk.Text(self, height=1, width=15, fg="black",
-                        bg="darkgrey", font='Helvetica 25 bold')
+        ansb = tk.Text(self, height=1, width=25, fg="black",
+                        bg="darkgrey", font='Helvetica 22 bold')
         ansb.insert(tk.END, self.display_word.strip())
         ansb.tag_configure("center", justify='center')
         ansb.tag_add("center", "1.0", "end")
-        ansb.grid(row=1, column=1, columnspan=7)
+        ansb.grid(row=1, column=1, columnspan=10)
 
         
         hangman = tk.Button(self)
@@ -232,24 +243,14 @@ class Hangman(Frame):
         image = ImageTk.PhotoImage(file=imgfile)
         hangman.config(image=image, bg="black")
         hangman.image = image
-        hangman.grid(row=1, column=8, rowspan=5)
+        hangman.grid(row=2, column=10, rowspan=4)
         self.pack()
-
-        
-        
-        
-
-
-
 
 def main():
     root = Tk()
     root.configure(background="black")
     app = Hangman()
     root.mainloop()
-
-
-
 
 
 if __name__ == '__main__':
